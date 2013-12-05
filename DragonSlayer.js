@@ -16,7 +16,7 @@ that is not yet populated.
 /*
     Use this to create Tile objects
 */
-function Tile(id, description, north_id, east_id, south_id, west_id)
+function Tile(id, description, north_id, east_id, south_id, west_id, image)
 {
     this.id = id;
     this.description = description;
@@ -35,6 +35,8 @@ function Tile(id, description, north_id, east_id, south_id, west_id)
 
     this.monster = null;
     this.item = null;
+    this.image = image;
+
 }
 
 Tile.prototype.toString = function() {
@@ -60,6 +62,11 @@ Tile.prototype.toString = function() {
     }
 
     return out;
+}
+
+Tile.prototype.getImage = function(){
+    imageOut = this.image;
+    return imageOut;
 }
 
 /*
@@ -122,8 +129,7 @@ function extendPartialMapFromJson(basetile, jsonstring, maxlevel, initial)
         for(var key in newbasetile) {
             basetile[key] = newbasetile[key];
         }
-    }
-    else {      // Player has already been moving in map
+    }    else {      // Player has already been moving in map
         recursiveCreateTiles(1, maxlevel, basetile, tiles_from_json, monsterlist);
     }
 }
@@ -243,7 +249,8 @@ function createTileFromObj(obj)
         obj.north_id,
         obj.east_id,
         obj.south_id,
-        obj.west_id
+        obj.west_id,
+        obj.image
     );
     return newTile;
 }
@@ -265,7 +272,7 @@ Player.prototype.initialize = function() {
 
     // Partial map of start location should be loaded
     var locationid = 1;     // TODO: This should be retrieved from server
-    this.currentPosition = new Tile(locationid, null, null, null, null, null);
+    this.currentPosition = new Tile(locationid, null, null, null, null, null,null);
     getPartialMapFromServer(this.currentPosition, 2, true);
 }
 
@@ -369,28 +376,48 @@ Player.prototype.go = function(to) {
         return "You cannot go there.";
     }
     else {
-        return "You traveled " + to;
+        
+        var DOM_img = document.createElement("img");
+        DOM_img.src = player.currentPosition.getImage(); 
+
+        // how the image will be displayed
+        DOM_img.style.maxHeight="150px";
+        DOM_img.style.marginTop="5px";
+
+        //delete previous image
+        var tempnode = document.getElementById("tileimage");
+        while(tempnode.firstChild) {
+            tempnode.removeChild(tempnode.firstChild);
+        }
+
+        //place new image in tileimage
+        document.getElementById("tileimage").appendChild(DOM_img);
+
+        return "You traveled " + to
+;
     }
+
+
 }
 
 
 /*
     Use this to create Monster objects
 */
-function Monster(id, description, location_id)
+function Monster(id, description, location_id, monster_image)
 {
     this.id = id;
     this.description = description;
     this.location_id = location_id;
-
     // Reference to location
-    this.location = null;
+    this.location = null,
+     
+    this.monster_image = monster_image;
 }
 
 Monster.prototype.toString = function() {
     var out = "[" + this.id + "] ";
     out += this.description;
-
     return out;
 }
 
@@ -399,7 +426,8 @@ function createMonsterFromObj(obj)
     var newMonster = new Monster(
         obj.id,
         obj.description,
-        obj.location_id
+        obj.location_id,
+        obj.monster_image
     );
     return newMonster;
 }
